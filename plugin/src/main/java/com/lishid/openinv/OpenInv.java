@@ -472,12 +472,23 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         // Replace stored player with our own version
         this.playerCache.put(key, this.accessor.getPlayerDataManager().inject(player));
 
+        /* Remove the cached entry if it exists */
+        this.playerCache.invalidate(key);
+
         if (this.inventories.containsKey(key)) {
-            this.inventories.get(key).setPlayerOffline();
+            Iterator<HumanEntity> iterator = this.inventories.remove(key).getBukkitInventory().getViewers().iterator();
+            while (iterator.hasNext()) {
+                HumanEntity human = iterator.next();
+                human.closeInventory();
+            }
         }
 
         if (this.enderChests.containsKey(key)) {
-            this.enderChests.get(key).setPlayerOffline();
+            Iterator<HumanEntity> iterator = this.enderChests.remove(key).getBukkitInventory().getViewers().iterator();
+            while (iterator.hasNext()) {
+                HumanEntity human = iterator.next();
+                human.closeInventory();
+            }
         }
     }
 
