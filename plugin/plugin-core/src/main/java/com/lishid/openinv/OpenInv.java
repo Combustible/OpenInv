@@ -110,9 +110,6 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
                         }
                     }
 
-                    if (!OpenInv.this.disableSaving() && !value.isOnline()) {
-                        value.saveData();
-                    }
                     return true;
                 }
             });
@@ -577,6 +574,8 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
     /**
      * Method for handling a Player going offline.
      *
+     * Monumenta: Completely eject all open handles to that player
+     *
      * @param player the Player
      * @throws IllegalStateException if the server version is unsupported
      */
@@ -589,12 +588,25 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
             return;
         }
 
+        /* Remove the cached entry if it exists */
+        this.playerCache.invalidate(key);
+
+        /* Disconnect all viewers from the player's inventory and remove it from the map */
         if (this.inventories.containsKey(key)) {
-            this.inventories.get(key).setPlayerOffline();
+            Iterator<HumanEntity> iterator = this.inventories.remove(key).getBukkitInventory().getViewers().iterator();
+            while (iterator.hasNext()) {
+                HumanEntity human = iterator.next();
+                human.closeInventory();
+            }
         }
 
+        /* Disconnect all viewers from the player's ender chest and remove it from the map */
         if (this.enderChests.containsKey(key)) {
-            this.enderChests.get(key).setPlayerOffline();
+            Iterator<HumanEntity> iterator = this.enderChests.remove(key).getBukkitInventory().getViewers().iterator();
+            while (iterator.hasNext()) {
+                HumanEntity human = iterator.next();
+                human.closeInventory();
+            }
         }
     }
 
